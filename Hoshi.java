@@ -1,6 +1,8 @@
 import com.alibaba.fastjson.JSONObject;
 import com.arxanfintech.common.rest.Client;
 import com.arxanfintech.sdk.wallet.Wallet;
+import org.apache.commons.codec.binary.Base64;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -106,8 +108,46 @@ public class Hoshi {
         JSONObject jsonHeader = new JSONObject();
         jsonHeader.put("Bc-Invoke-Mode", "sync");
         try {
-            System.out.println(this.wallet.QueryWalletBalance(jsonHeader, "did:axn:kwsxz" + access));
+            return this.wallet.QueryWalletBalance(jsonHeader, "did:axn:kwsxz" + access);
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    /**
+     * 上传个人信息
+     * @param jsonObject 待上传信息
+     * @param access 用户名
+     * @param name 待上传信息的名称
+     * @param privateKeyBase64 用户私钥（注册时返回的私钥，需保存好）
+     * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
+     */
+    public String uploadPOE(JSONObject jsonObject,String access,String name,String privateKeyBase64){
+        try {
+            JSONObject jsonHeader = new JSONObject();
+            jsonHeader.put("Bc-Invoke-Mode", "sync");
+
+            String POEString = jsonObject.toJSONString();
+            byte[] bytes = POEString.getBytes("UTF-8");
+            Base64 base64 = new Base64();
+            String encodedText = base64.encodeToString(bytes);
+
+            JSONObject jsonPayload = new JSONObject();
+            jsonPayload.put("id", "");
+            jsonPayload.put("name", name);
+            jsonPayload.put("hash", "");
+            jsonPayload.put("parent_id", "");
+            jsonPayload.put("owner", "did:axn:kwsxz" + access);
+            jsonPayload.put("metadata", encodedText);
+            return this.wallet.CreatePOE(jsonHeader,
+                    jsonPayload,
+                    "did:axn:kwsxz" + access,
+                    null,
+                    null,
+                    privateKeyBase64,
+                    ""
+            );
+        }catch (Exception e){
             e.printStackTrace();
         }
         return null;
