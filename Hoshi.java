@@ -1,18 +1,25 @@
 import com.alibaba.fastjson.JSONObject;
+import com.arxanfintech.common.crypto.Crypto;
+import com.arxanfintech.common.rest.Api;
 import com.arxanfintech.common.rest.Client;
+import com.arxanfintech.common.rest.Common;
+import com.arxanfintech.common.rest.Request;
 import com.arxanfintech.sdk.wallet.Wallet;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class Hoshi {
-    public Wallet wallet;
+    private Wallet wallet;
+    private Client client;
+    private Crypto crypto;
     Hoshi(){
-        Client client = new Client();
+        this.client = new Client();
         client.PrivateB64 = "2RPpCLAl0CNiiXMLjUNSC1acqtkvU8+U9MtU2yvo4Vz52m8mW4+UrvqmFosxi/pu/AzpFf+CCQtutYCtKOZFoQ==";
         client.Nonce = "114514";
         client.Creator = "did:axn:124d00f2-ea55-4724-8e58-31680d443628";
@@ -20,6 +27,13 @@ public class Hoshi {
         client.ApiKey = "4JTOfmEHM1534223148";
         client.Address = "139.198.15.132:9143";
         this.wallet = new Wallet(client);
+        String privateKeyPath = client.CertPath + "/users/" + client.ApiKey + "/" + client.ApiKey + ".key";
+        String publicCertPath = client.CertPath + "/tls/tls.cert";
+        try {
+            this.crypto = new Crypto(new FileInputStream(privateKeyPath), new FileInputStream(publicCertPath));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     public static void main(String[] args) {
         Hoshi hoshi=new Hoshi();
@@ -27,7 +41,6 @@ public class Hoshi {
     }
     /**
      * 注册
-     *
      * @param access 用户名
      * @param secret 密码
      * @param type   用户类型(Organization Person Dependent Independent)
@@ -52,7 +65,6 @@ public class Hoshi {
     }
     /**
      * 登录
-     *
      * @param access 用户名
      * @param secret 密码
      * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
@@ -148,6 +160,54 @@ public class Hoshi {
                     ""
             );
         }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+    /**
+     * 更改个人信息
+     *
+     * @param jsonObject       待上传信息
+     * @param access           用户名
+     * @param privateKeyBase64 用户私钥（注册时返回的私钥，需保存好）
+     * @param POEdid           待上传信息的did
+     * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
+     */
+    public String updatePOE(JSONObject jsonObject, String access, String privateKeyBase64, String POEdid) {
+        JSONObject jsonHeader = new JSONObject();
+        jsonHeader.put("Bc-Invoke-Mode", "sync");
+
+        String POEString = jsonObject.toJSONString();
+        try {
+            byte[] bytes = POEString.getBytes("UTF-8");
+
+            Base64 base64 = new Base64();
+            String encodedText = base64.encodeToString(bytes);
+
+            JSONObject jsonPayload = new JSONObject();
+            jsonPayload.put("id", POEdid);
+            jsonPayload.put("name", "");
+            jsonPayload.put("hash", "");
+            jsonPayload.put("parent_id", "");
+            jsonPayload.put("owner", "did:axn:kwsxz" + access);
+            jsonPayload.put("metadata", encodedText);
+
+            Request request = new Request();
+            request.client = this.client;
+            request.body = Common.Build_Body(jsonPayload,
+                    "did:axn:kwsxz" + access,
+                    null,
+                    null,
+                    privateKeyBase64,
+                    "");
+            request.header = jsonHeader;
+            request.crypto = this.crypto;
+            request.url = "http://" + request.client.Address + "/wallet-ng/v1/poe/update";
+            Api api = new Api();
+            api.NewHttpClient();
+            String response = api.DoPut(request);
+            return response;
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
