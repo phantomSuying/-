@@ -26,7 +26,7 @@ public class ClientPart {
         this.client.PrivateB64 = "2RPpCLAl0CNiiXMLjUNSC1acqtkvU8+U9MtU2yvo4Vz52m8mW4+UrvqmFosxi/pu/AzpFf+CCQtutYCtKOZFoQ==";
         this.client.Nonce = "123456";
         this.client.Creator = "did:axn:124d00f2-ea55-4724-8e58-31680d443628";
-        this.client.CertPath = "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe";
+        this.client.CertPath = "C:/Python27/Lib/site-packages/py_common-2.0.1-py2.7.egg/cryption/ecc/certs";
         this.client.ApiKey = "IoZYarPTp1532411905";
         this.client.Address = "139.198.15.132:9143";
         this.wallet = new Wallet(client);
@@ -37,6 +37,24 @@ public class ClientPart {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        ClientPart clientPart = new ClientPart();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", "lll");
+        JSONObject jsonHeader = new JSONObject();
+        jsonHeader.put("Bc-Invoke-Mode", "sync");
+        System.out.println(clientPart.uploadPOE(jsonObject,
+                "User551",
+                "sixth",
+                "nCjQIGsWrm1nhhcD6Wl+Cqwnx0ssg+/aSbxb2VIMxqGMDCtOJET0U9sbTxNDE5Dmirz/oGT7o70SpOOe4kaGcA=="));
+//        System.out.println(clientPart.getSelfInf("User551"));
+//        try {
+//            System.out.println(clientPart.wallet.QueryPOE(jsonHeader, "did:axn:709709c8-01a5-4f4b-8d06-887bee85cf64"));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -156,14 +174,43 @@ public class ClientPart {
             jsonPayload.put("parent_id", "");
             jsonPayload.put("owner", "did:axn:kwsxz" + access);
             jsonPayload.put("metadata", encodedText);
-            return this.wallet.CreatePOE(jsonHeader,
+            String response = this.wallet.CreatePOE(jsonHeader,
                     jsonPayload,
                     "did:axn:kwsxz" + access,
                     null,
                     null,
                     privateKeyBase64,
-                    ""
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"
             );
+            JSONObject jsonTokenPayload = JSON.parseObject("{\"issuer\":\"" +
+                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628" +
+                    "\",\"owner\":\"" +
+                    "did:axn:kwsxz" + access +
+                    "\",\"asset_id\":\"" +
+                    JSON.parseObject((String) JSON.parseObject(response).get("Payload")).get("id") +
+                    "\",\"amount\":1000,\"fee\":{\"amount\":0}}");
+            System.out.println(wallet.IssueTokens(jsonHeader,
+                    jsonTokenPayload,
+                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628",
+                    null,
+                    null,
+                    privateKeyBase64,
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"));
+            JSONObject jsonAssetsPayload = JSON.parseObject("{\"issuer\":\"" +
+                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628" +
+                    "\",\"owner\":\"" +
+                    "did:axn:kwsxz" + access +
+                    "\",\"asset_id\":\"" +
+                    JSON.parseObject((String) JSON.parseObject(response).get("Payload")).get("id") +
+                    "\",\"fee\":{\"amount\":0}}");
+            System.out.println(wallet.IssueAssets(jsonHeader,
+                    jsonAssetsPayload,
+                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628",
+                    null,
+                    null,
+                    privateKeyBase64,
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"));
+            return response;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -205,7 +252,7 @@ public class ClientPart {
                     null,
                     null,
                     privateKeyBase64,
-                    "");
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe");
             request.header = jsonHeader;
             request.crypto = this.crypto;
             request.url = "http://" + request.client.Address + "/wallet-ng/v1/poe/update";
@@ -251,6 +298,16 @@ public class ClientPart {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    /*
+     * 查询信息许可
+     *
+     *
+     *
+     */
+    public String getPermission(String access) {
         return null;
     }
 }
