@@ -19,40 +19,50 @@ public class ClientPart {
 
     private Wallet wallet;
     private Client client;
-    private Crypto crypto;
+    //private Crypto crypto;
+    private JSONObject header;
 
-    ClientPart() {
-        this.client = new Client();
-        this.client.PrivateB64 = "2RPpCLAl0CNiiXMLjUNSC1acqtkvU8+U9MtU2yvo4Vz52m8mW4+UrvqmFosxi/pu/AzpFf+CCQtutYCtKOZFoQ==";
-        this.client.Nonce = "123456";
-        this.client.Creator = "did:axn:124d00f2-ea55-4724-8e58-31680d443628";
-        this.client.CertPath = "C:/Python27/Lib/site-packages/py_common-2.0.1-py2.7.egg/cryption/ecc/certs";
-        this.client.ApiKey = "IoZYarPTp1532411905";
-        this.client.Address = "139.198.15.132:9143";
+    private ClientPart() {
+        this.client = new Client("IoZYarPTp1532411905",
+                "C:/Python27/Lib/site-packages/py_common-2.0.1-py2.7.egg/cryption/ecc/certs",
+                "did:axn:124d00f2-ea55-4724-8e58-31680d443628",
+                null,
+                null,
+                "2RPpCLAl0CNiiXMLjUNSC1acqtkvU8+U9MtU2yvo4Vz52m8mW4+UrvqmFosxi/pu/AzpFf+CCQtutYCtKOZFoQ==",
+                "139.198.15.132:9143",
+                true);
         this.wallet = new Wallet(client);
-        String privateKeyPath = client.CertPath + "/users/" + client.ApiKey + "/" + client.ApiKey + ".key";
-        String publicCertPath = client.CertPath + "/tls/tls.cert";
-        try {
-            this.crypto = new Crypto(new FileInputStream(privateKeyPath), new FileInputStream(publicCertPath));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        String privateKeyPath = this.client.GetCertPath() + "/users/" + this.client.GetApiKey() + "/" + this.client.GetApiKey() + ".key";
+//        String publicCertPath = this.client.GetCertPath() + "/tls/tls.cert";
+        this.header = new JSONObject();
+        this.header.put("Bc-Invoke-Mode", "sync");
+//        try {
+//            this.crypto = new Crypto(new FileInputStream(privateKeyPath), new FileInputStream(publicCertPath));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     public static void main(String[] args) {
         ClientPart clientPart = new ClientPart();
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name", "lll");
-        JSONObject jsonHeader = new JSONObject();
-        jsonHeader.put("Bc-Invoke-Mode", "sync");
-        System.out.println(clientPart.uploadPOE(jsonObject,
-                "User551",
-                "seventh",
-                "nCjQIGsWrm1nhhcD6Wl+Cqwnx0ssg+/aSbxb2VIMxqGMDCtOJET0U9sbTxNDE5Dmirz/oGT7o70SpOOe4kaGcA=="));
-//        System.out.println(clientPart.getSelfInf("User551"));
+        jsonObject.put("name", "rrr");
+//        System.out.println(clientPart.uploadPOE(jsonObject,
+//                "User226",
+//                "first"));
+        try {
+            String response = clientPart.wallet.QueryPOE(clientPart.header, "did:axn:577b2073-882f-41ab-8603-114f75d0217a").getString("Payload");
+            System.out.println(clientPart.analyzeMetadata(JSON.parseObject(response).getString("metadata")));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        System.out.println(clientPart.getMessageBoxInformation());
+//        System.out.println(clientPart.signUp("User226","Password226","Person"));
 //        try {
-//            System.out.println(clientPart.wallet.QueryPOE(jsonHeader, "did:axn:709709c8-01a5-4f4b-8d06-887bee85cf64"));
-//        } catch (Exception e) {
+//            System.out.println(clientPart.updatePOE(jsonObject,
+//                    "User226",
+//                    "first"));
+//        }catch (Exception e){
 //            e.printStackTrace();
 //        }
     }
@@ -63,18 +73,22 @@ public class ClientPart {
      * @param access 用户名
      * @param secret 密码
      * @param type   用户类型(Organization Person Dependent Independent)
-     * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
+     * @return 返回结果信息，返回值需判断返回代码是否为零
      */
-    public String signUp(String access, String secret, String type) {
+    public JSONObject signUp(String access, String secret, String type) {
         JSONObject jsonData = new JSONObject();
         jsonData.put("access", access);
         jsonData.put("secret", secret);
         jsonData.put("type", type);
         jsonData.put("id", "did:axn:kwsxz" + access);//在access前加上did:axn:kwsxz作为前缀当作ID
-        JSONObject jsonHeader = new JSONObject();
-        jsonHeader.put("Bc-Invoke-Mode", "sync");
         try {
-            return wallet.Register(jsonHeader, jsonData);
+            JSONObject response = wallet.Register(this.header, jsonData);
+            JSONObject jsonKeyPair = (JSONObject) JSON.parseObject((String) response.get("Payload")).get("key_pair");
+            JSONObject jsonMessage = new JSONObject();
+            jsonMessage.put("key_pair", jsonKeyPair);
+            jsonMessage.put("POEdid", "");
+            this.updateMessageBox(access, jsonMessage);
+            return response;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,7 +100,7 @@ public class ClientPart {
      *
      * @param access 用户名
      * @param secret 密码
-     * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
+     * @return 返回结果信息，返回值需判断返回代码是否为零
      */
     public String logIn(String access, String secret) {
         try {
@@ -135,13 +149,12 @@ public class ClientPart {
      * 获取信息
      *
      * @param access 用户名
-     * @return 返回结果信息，以String存储，需要转换为json数据结构
+     * @return 返回结果信息，有POEdid和key_pair两项
      */
-    public String getSelfInf(String access) {
-        JSONObject jsonHeader = new JSONObject();
-        jsonHeader.put("Bc-Invoke-Mode", "sync");
+    public JSONObject getUserInformation(String access) {
         try {
-            return this.wallet.QueryWalletBalance(jsonHeader, "did:axn:kwsxz" + access);
+            JSONObject jsonObject = this.getMessageBoxInformation();
+            return jsonObject.getJSONObject(access);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -151,21 +164,14 @@ public class ClientPart {
     /**
      * 上传个人信息
      *
-     * @param jsonObject       待上传信息
-     * @param access           用户名
-     * @param name             待上传信息的名称
-     * @param privateKeyBase64 用户私钥（注册时返回的私钥，需保存好）
-     * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
+     * @param jsonObject 待上传信息
+     * @param access     用户名
+     * @param name       待上传信息的名称
+     * @return 返回结果信息，返回值需判断返回代码是否为零
      */
-    public String uploadPOE(JSONObject jsonObject, String access, String name, String privateKeyBase64) {
+    public JSONObject uploadPOE(JSONObject jsonObject, String access, String name) {
         try {
-            JSONObject jsonHeader = new JSONObject();
-            jsonHeader.put("Bc-Invoke-Mode", "sync");
-
-            String POEString = jsonObject.toJSONString();
-            byte[] bytes = POEString.getBytes("UTF-8");
-            Base64 base64 = new Base64();
-            String encodedText = base64.encodeToString(bytes);
+            String encodedText = this.JSONObjectToMetadata(jsonObject);
 
             JSONObject jsonPayload = new JSONObject();
             jsonPayload.put("id", "");
@@ -174,44 +180,19 @@ public class ClientPart {
             jsonPayload.put("parent_id", "");
             jsonPayload.put("owner", "did:axn:kwsxz" + access);
             jsonPayload.put("metadata", encodedText);
-            String response = this.wallet.CreatePOE(jsonHeader,
+            JSONObject response = this.wallet.CreatePOE(this.header,
                     jsonPayload,
                     "did:axn:kwsxz" + access,
                     null,
                     null,
-                    privateKeyBase64
-                    //"C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"
+                    this.getMessageBoxInformation().getJSONObject(access).getJSONObject("key_pair").getString("private_key"),
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"
             );
-            JSONObject jsonTokenPayload = JSON.parseObject("{\"issuer\":\"" +
-                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628" +
-                    "\",\"owner\":\"" +
-                    "did:axn:kwsxz" + access +
-                    "\",\"asset_id\":\"" +
-                    JSON.parseObject((String) JSON.parseObject(response).get("Payload")).get("id") +
-                    "\",\"amount\":1000,\"fee\":{\"amount\":0}}");
-            System.out.println(wallet.IssueTokens(jsonHeader,
-                    jsonTokenPayload,
-                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628",
-                    null,
-                    null,
-                    privateKeyBase64
-                    //"C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe")
-            ));
-            JSONObject jsonAssetsPayload = JSON.parseObject("{\"issuer\":\"" +
-                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628" +
-                    "\",\"owner\":\"" +
-                    "did:axn:kwsxz" + access +
-                    "\",\"asset_id\":\"" +
-                    JSON.parseObject((String) JSON.parseObject(response).get("Payload")).get("id") +
-                    "\",\"fee\":{\"amount\":0}}");
-            System.out.println(wallet.IssueAssets(jsonHeader,
-                    jsonAssetsPayload,
-                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628",
-                    null,
-                    null,
-                    privateKeyBase64
-                    //"C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"
-            ));
+            String rePayload = (String) response.get("Payload");
+            String POEdid = (String) JSON.parseObject(rePayload).get("id");
+            JSONObject reMessage = (JSONObject) this.getMessageBoxInformation().get(access);
+            reMessage.put("POEdid", POEdid);
+            this.updateMessageBox(access, reMessage);
             return response;
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,46 +203,45 @@ public class ClientPart {
     /**
      * 更改个人信息
      *
-     * @param jsonObject       待上传信息
-     * @param access           用户名
-     * @param privateKeyBase64 用户私钥（注册时返回的私钥，需保存好）
-     * @param POEdid           待上传信息的did
-     * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
+     * @param jsonObject 待上传信息
+     * @param access     用户名
+     * @param name       待上传信息的名称
+     * @return 返回结果信息，返回值需判断返回代码是否为零
      */
-    public String updatePOE(JSONObject jsonObject, String access, String privateKeyBase64, String POEdid) {
-        JSONObject jsonHeader = new JSONObject();
-        jsonHeader.put("Bc-Invoke-Mode", "sync");
-
-        String POEString = jsonObject.toJSONString();
+    public JSONObject updatePOE(JSONObject jsonObject, String access, String name) {
         try {
-            byte[] bytes = POEString.getBytes("UTF-8");
-
-            Base64 base64 = new Base64();
-            String encodedText = base64.encodeToString(bytes);
+            String encodedText = this.JSONObjectToMetadata(jsonObject);
 
             JSONObject jsonPayload = new JSONObject();
-            jsonPayload.put("id", POEdid);
-            jsonPayload.put("name", "");
+            jsonPayload.put("id", this.getMessageBoxInformation().getJSONObject(access).getString("POEdid"));
+            jsonPayload.put("name", name);
             jsonPayload.put("hash", "");
             jsonPayload.put("parent_id", "");
             jsonPayload.put("owner", "did:axn:kwsxz" + access);
             jsonPayload.put("metadata", encodedText);
 
-            Request request = new Request();
-            request.client = this.client;
-            request.body = Common.Build_Body(jsonPayload,
-                    "did:axn:kwsxz" + access,
+            JSONObject response = this.wallet.UpdatePOE(this.header,
+                    jsonPayload,
+                    this.client.GetCreator(),
                     null,
                     null,
-                    privateKeyBase64
-                    //"C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"
-            );
-            request.header = jsonHeader;
-            request.crypto = this.crypto;
-            request.url = "http://" + request.client.Address + "/wallet-ng/v1/poe/update";
-            Api api = new Api();
-            api.NewHttpClient();
-            String response = api.DoPut(request);
+                    this.getMessageBoxInformation().getJSONObject(access).getJSONObject("key_pair").getString("private_key"),
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe");
+//            Request request = new Request();
+//            request.client = this.client;
+//            request.body = Common.BuildBody(jsonPayload,
+//                    "did:axn:kwsxz" + access,
+//                    null,
+//                    null,
+//                    privateKeyBase64,
+//                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"
+//            );
+//            request.header = jsonHeader;
+//            request.crypto = this.crypto;
+//            request.url = "http://" + request.client.GetAddress() + "/wallet-ng/v1/poe/update";
+//            Api api = new Api();
+//            api.NewHttpClient();
+//            String response = api.DoPut(request);
             return response;
         } catch (Exception e) {
             e.printStackTrace();
@@ -272,46 +252,93 @@ public class ClientPart {
     /**
      * 寻求许可
      *
-     * @param privateKeyBase64 用户私钥
-     * @param otherAccess      他人用户名
-     * @param selfAccess       自己的用户名
-     * @param tokenId          积分did
+     * @param otherAccess 他人用户名
+     * @param selfAccess  自己的用户名
      * @return 返回结果信息，以String存储，需要转换为json数据结构，返回值需判断返回代码是否为零
      */
-    public String askForPermission(String selfAccess, String otherAccess, String tokenId, String privateKeyBase64) {
+    public JSONObject askForPermission(String selfAccess, String otherAccess) {
+        return null;
+    }
+
+    /**
+     * 查询信息许可
+     *
+     * @param access 用户名
+     * @return 许可信息，用JSON数据结构存储
+     */
+    public String getPermission(String access) {
+        return null;
+    }
+
+    /**
+     * @param access      用户名
+     * @param jsonPayload 用户信息
+     */
+    private void updateMessageBox(String access, JSONObject jsonPayload) {
         JSONObject jsonHeader = new JSONObject();
         jsonHeader.put("Bc-Invoke-Mode", "sync");
-
-        JSONObject jsonPayload = JSON.parseObject("{\"from\":\"" +
-                selfAccess +
-                "\",\"to\":\"" +
-                otherAccess +
-                "\",\"tokens\":[{\"token_id\":\"" +
-                tokenId +
-                "\",\"amount\":5}],\"fee\":{\"amount\":10}}");
         try {
-            return this.wallet.TransferTokens(jsonHeader,
-                    jsonPayload,
-                    selfAccess,
-                    null,
-                    null,
-                    privateKeyBase64
-                    //""
-            );
+            JSONObject jsonMetadataMessage = this.getMessageBoxInformation();
+            jsonMetadataMessage.put(access, jsonPayload);
+            String stringMetadataMessage = this.JSONObjectToMetadata(jsonMetadataMessage);
 
+            JSONObject jsonPOEPayload = new JSONObject();
+            jsonPOEPayload.put("id", "did:axn:af7380cb-2137-4c2d-a98e-62aba671f6df");
+            jsonPOEPayload.put("name", "MessageBox");
+            jsonPOEPayload.put("owner", "did:axn:124d00f2-ea55-4724-8e58-31680d443628");
+            jsonPOEPayload.put("hash", "");
+            jsonPOEPayload.put("metadata", stringMetadataMessage);
+
+            System.out.println(this.wallet.UpdatePOE(jsonHeader,
+                    jsonPOEPayload,
+                    "did:axn:124d00f2-ea55-4724-8e58-31680d443628",
+                    null,
+                    null,
+                    "2RPpCLAl0CNiiXMLjUNSC1acqtkvU8+U9MtU2yvo4Vz52m8mW4+UrvqmFosxi/pu/AzpFf+CCQtutYCtKOZFoQ==",
+                    "C:/Go/src/github.com/arxanchain/sdk-go-common/crypto/tools/build/bin/sign-util.exe"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @return 信息中心所有信息
+     */
+    private JSONObject getMessageBoxInformation() {
+        try {
+            JSONObject jsonObject = this.wallet.QueryPOE(this.header, "did:axn:af7380cb-2137-4c2d-a98e-62aba671f6df");
+            String rePayload = (String) jsonObject.get("Payload");
+            String metadataMessage = (String) JSON.parseObject(rePayload).get("metadata");
+            return this.analyzeMetadata(metadataMessage);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    /*
-     * 查询信息许可
-     *
-     *
-     *
+    /**
+     * @param metadataString 待解码数据
+     * @return 解码后数据
      */
-    public String getPermission(String access) {
+    private JSONObject analyzeMetadata(String metadataString) {
+        Base64 base64 = new Base64();
+        byte[] bytes = base64.decode(metadataString);
+        return (JSONObject) JSON.parse(bytes);
+    }
+
+    /**
+     * @param jsonObject 待编码数据
+     * @return 编码后数据
+     */
+    private String JSONObjectToMetadata(JSONObject jsonObject) {
+        try {
+            String string = jsonObject.toJSONString();
+            byte[] bytes = string.getBytes("UTF-8");
+            Base64 base64 = new Base64();
+            return base64.encodeToString(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }
