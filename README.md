@@ -1,11 +1,11 @@
 # 参赛作品
 ## 如何查询自己信息？
 使用query_personal_message函数，返回值是json结构的  
-`{＜/br＞
-   "name":"xx"＜/br＞
-   "sex":"xx"＜/br＞
-   ...＜/br＞
- }`  
+`{`
+   `"name":"xx"`
+   `"sex":"xx"`
+   `...`
+ `}`  
  ## 如何修改自己信息？
  使用update_personal_message函数，参数中的message如上述json结构所说
  ## 如何查询其他人的信息？
