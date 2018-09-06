@@ -11,13 +11,12 @@
     信息存储中心
 </p>
 <hr>
-<p id="accessOn">用户：</p>
+<p id="accessOn">用户：{{ labelUserName }}</p>
 <div id="play">
     <ul>
-        <li>姓名：xx</li>
-        <li>性别：</li>
-        <li>民族：</li>
-        <li>国家：</li>
+        {% for item in keySet %}
+        <li>{{ item }}: {{list['item']}}</li>
+        {% endfor %}
     </ul>
     <input class="a" type="submit" value="退出登录">
     <input class="a" type="submit" value="修改信息">
@@ -29,10 +28,10 @@
     <input type="submit" value="提交">
 </form>
 <ul>
-    <li>姓名：</li>
-    <li>性别：</li>
-    <li>民族：</li>
-    <li>国家：</li>
+    <li>姓名：{{otherName}}</li>
+    <li>性别：{{otherSex}}</li>
+    <li>民族：{{otherNationality}}</li>
+    <li>国家：{{otherCountry}}</li>
 </ul>
 </body>
 </html>

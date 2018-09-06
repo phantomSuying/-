@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>修改</title>
     <link rel="stylesheet" href="modify.css" type="text/css"/>
+    <script src="modify.js"></script>
 </head>
 <body>
 <p>
@@ -11,8 +12,8 @@
     信息存储中心
 </p>
 <hr>
-<p id="accessOn">用户：</p>
-<form>
+<p id="accessOn">用户：{{ labelUserName }}</p>
+<form id="theForm">
     <label for="name">姓名：</label>
     <input type="text" id="name" name="name">
     <br>
@@ -25,12 +26,14 @@
     <label for="country">国家：</label>
     <input type="text" id="country" name="country">
 </form>
-<input type="submit" value="添加">
+<button onclick="add()">添加</button>
 <input type="submit" value="保存">
 <input type="submit" value="取消">
 <hr>
 <form>
-    <input type="checkbox" name="user" value="xx">xx
+    {% for item in users %}
+    <input type="checkbox" name="user" value="xx">item
+    {% endfor %}
     <br>
     <input type="submit" value="提交">
     <input type="submit" value="取消">
