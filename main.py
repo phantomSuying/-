@@ -91,47 +91,50 @@ class ClientPart:
     def ask_other_message(self, self_access, other_access):
 
         response = self.__query_poe_to_json(self.permission_center)
-        if response.has_key(other_access):
-            if "OFF" + self_access in response[other_access]:
-                return False
-            elif "ON" + self_access in response[other_access]:
-                return True
-            else:
-                response[other_access].append("OFF" + self_access)
-                self.__update_poe_metadata(response, self.permission_center, "PermissionBox",
-                                           self.ent_sign_param["creator"], self.ent_sign_param["privateB64"])
-                return False
+        if other_access in response:
+            for x in response[other_access]:
+                if x["userAccess"] == self_access:
+                    return x["permitList"]
+            response[other_access].append({
+                "userAccess": self_access,
+                "permitList": []
+            })
         else:
-            response[other_access] = ["OFF" + self_access]
-            self.__update_poe_metadata(response, self.permission_center, "PermissionBox",
-                                       self.ent_sign_param["creator"], self.ent_sign_param["privateB64"])
-            return False
-
-    def update_permission_list(self, access, permit_list, reject_list):
-        permission_list = []
-        for x in permit_list:
-            permission_list.append("ON" + x)
-        for x in reject_list:
-            permission_list.append("OFF" + x)
-        response = self.__query_poe_to_json(self.permission_center)
-        response[access] = permission_list
+            response[other_access] = []
         self.__update_poe_metadata(response, self.permission_center, "PermissionBox", self.ent_sign_param["creator"],
                                    self.ent_sign_param["privateB64"])
-        
+
+    def update_permission_list(self, access, permit_list, other_access):
+
+        response = self.__query_poe_to_json(self.permission_center)
+        if access in response:
+            found = False
+            for x in response[access]:  # jsonArray
+                if x["userAccess"] == other_access:
+                    x["permitList"] = permit_list
+                    found = True
+            if not found:
+                response[access].append({
+                    "userAccess": other_access,
+                    "permitList": permit_list
+                })
+        else:
+            response[access] = [{
+                "userAccess": other_access,
+                "permitList": permit_list
+            }]
+        self.__update_poe_metadata(response, self.permission_center, "PermissionBox", self.ent_sign_param["creator"],
+                                   self.ent_sign_param["privateB64"])
+
     def query_personal_permission(self, access):
         json_object = self.__query_poe_to_json(self.permission_center)
+        ls = []
         if access in json_object:
-            array = json_object[access]
-            off_array = []
-            on_array = []
-            for x in array:
-                if x[0:3] == "OFF":
-                    off_array.append(x[3:])
-                else:
-                    on_array.append(x[2:])
-            return on_array,off_array
+            for x in json_object[access]:
+                ls.append(x["userAccess"])
+            return ls
         else:
-            return None        
+            return None
 
     def __create_poe(self, access, private_key, message):
         pay_load = {
