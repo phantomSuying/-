@@ -117,6 +117,21 @@ class ClientPart:
         response[access] = permission_list
         self.__update_poe_metadata(response, self.permission_center, "PermissionBox", self.ent_sign_param["creator"],
                                    self.ent_sign_param["privateB64"])
+        
+    def query_personal_permission(self, access):
+        json_object = self.__query_poe_to_json(self.permission_center)
+        if access in json_object:
+            array = json_object[access]
+            off_array = []
+            on_array = []
+            for x in array:
+                if x[0:3] == "OFF":
+                    off_array.append(x[3:])
+                else:
+                    on_array.append(x[2:])
+            return on_array,off_array
+        else:
+            return None        
 
     def __create_poe(self, access, private_key, message):
         pay_load = {
