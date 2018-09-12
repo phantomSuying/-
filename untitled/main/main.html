@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>主页</title>
     <link rel="stylesheet" href="main.css" type="text/css"/>
-    <script src="main.js"></script>
 </head>
 <body>
 <p>
@@ -13,26 +12,27 @@
 </p>
 <hr>
 <p id="accessOn">用户：{{ labelUserName }}</p>
-<div id="play">
-    <ul>
-        {% for item in keySet %}
-        <li>{{ item }}: {{list['item']}}</li>
+<form id="play">
+    {% for key,value in dicts.items %}
+    <label><input type="checkbox" id="django{{key}}">{{ key }}: {{value}}</label><br>
+    {% endfor %}
+    <br>
+    <label>选择用户<select>
+        {% for name in userList %}
+        <option value="djangoUser{{name}}">name</option>
         {% endfor %}
-    </ul>
+    </select></label>
     <input class="a" type="submit" value="退出登录">
-</div>
+</form>
 <hr>
 <form id="find">
     <label for="other">查询：</label>
     <input type="text" id="other" name="other">
     <input type="submit" value="提交">
 </form>
-<ul>
-    <li>姓名：{{otherName}}</li>
-    <li>性别：{{otherSex}}</li>
-    <li>民族：{{otherNationality}}</li>
-    <li>国家：{{otherCountry}}</li>
-</ul>
+{% for key,value in otherDicts.items %}
+{{ key }}: {{value}}<br>
+{% endfor %}
 <hr>
 <form id="theForm">
     <label for="name">姓名：</label>
@@ -46,18 +46,12 @@
     <br>
     <label for="country">国家：</label>
     <input type="text" id="country" name="country">
+    <input type="submit" value="保存全部">
 </form>
-<button onclick="add()">添加</button>
-<input type="submit" value="保存">
-<input type="submit" value="取消">
 <hr>
-<form>
-    {% for item in users %}
-    <input type="checkbox" name="user" value="xx">item
-    {% endfor %}
-    <br>
-    <input type="submit" value="提交">
-    <input type="submit" value="取消">
+<form id="addForm">
+    <input type="text" id="otherKey" name="otherKey">:<input type="text" id="otherValue" name="otherValue">
+    <input type="submit" value="添加">
 </form>
 </body>
 </html>
