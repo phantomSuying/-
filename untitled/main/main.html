@@ -13,6 +13,7 @@
 <hr>
 <p id="accessOn">用户：{{ labelUserName }}</p>
 <form id="play">
+    勾选项为当前所选用户可查看信息<br>
     {% for key,value in dicts.items %}
     <label><input type="checkbox" id="django{{key}}">{{ key }}: {{value}}</label><br>
     {% endfor %}
@@ -22,7 +23,8 @@
         <option value="djangoUser{{name}}">name</option>
         {% endfor %}
     </select></label>
-    <input class="a" type="submit" value="退出登录">
+    <input class="a" type="submit" value="确认">
+    <input type="submit" value="确认修改">
 </form>
 <hr>
 <form id="find">
@@ -34,22 +36,8 @@
 {{ key }}: {{value}}<br>
 {% endfor %}
 <hr>
-<form id="theForm">
-    <label for="name">姓名：</label>
-    <input type="text" id="name" name="name">
-    <br>
-    <label for="sex">性别：</label>
-    <input type="text" id="sex" name="sex">
-    <br>
-    <label for="nationality">民族：</label>
-    <input type="text" id="nationality" name="nationality">
-    <br>
-    <label for="country">国家：</label>
-    <input type="text" id="country" name="country">
-    <input type="submit" value="保存全部">
-</form>
-<hr>
 <form id="addForm">
+    修改或添加信息<br>
     <input type="text" id="otherKey" name="otherKey">:<input type="text" id="otherValue" name="otherValue">
     <input type="submit" value="添加">
 </form>
