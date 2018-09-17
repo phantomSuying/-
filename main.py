@@ -25,7 +25,7 @@ class ClientPart:
         self.message_center = "did:axn:af7380cb-2137-4c2d-a98e-62aba671f6df"
         self.permission_center = "did:axn:a20b40ff-ccff-4f7a-a839-acbde84b6a6e"
 
-    def sign_up(self, access, secret, entity_type, name, sex, nationality, country):
+    def sign_up(self, access, secret, entity_type, name, country):
         body = {
             "id": "did:axn:kwsxz" + access,
             "type": entity_type,
@@ -39,8 +39,6 @@ class ClientPart:
 
             message = {
                 "name": name,
-                "sex": sex,
-                "nationality": nationality,
                 "country": country
             }
 
@@ -120,8 +118,8 @@ class ClientPart:
                 })
         else:
             response[access] = [{
-                "userAccess": other_access,
-                "permitList": permit_list
+                "userAccess":other_access,
+                "permitList":permit_list
             }]
         self.__update_poe_metadata(response, self.permission_center, "PermissionBox", self.ent_sign_param["creator"],
                                    self.ent_sign_param["privateB64"])
@@ -173,9 +171,3 @@ class ClientPart:
         _, response = self.wallet.update_poe(self.header, payload, parameter)
         return response
 
-#     def query_js(self):
-#         return self.__query_poe_to_json(self.permission_center)
-#
-#
-# client_part = ClientPart()
-# print client_part.query_js()
