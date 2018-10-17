@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+    <link rel="stylesheet" href="static/css/main.css" type="text/css"/>
+</head>
+<body>
+
+<img src="static/img/KH.png"/>
+<p id="accessOn">用户：{{ labelUserName }}</p>
+<div id="headPhoto">PersonalInformation</div>
+
+<hr>
+<div id="notMove">
+    <form id="find" action="main/search">
+        <label for="other"></label>
+        <input type="text" id="other" name="other" placeholder="查询其他用户信息">
+        <input type="submit" value="提交">
+    </form>
+    <br>
+    {% for key,value in otherDicts.items %}
+        {{ key }}: {{ value }}<br>
+    {% endfor %}
+</div>
+<hr>
+<form id="play">
+    <p class="tishi">勾选项为当前所选用户可查看信息，按确认提交</p>
+    <label>选择用户<select name="dropdown">
+        {% for name in userList %}
+            <option id="name" value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+    </select></label>
+    <br>
+    {% for key,value in dicts.items %}
+        <label> <input type="checkbox" id="django{{ key }}" name="check_box_lists"
+                       value="{{ key }}">{{ key }}: {{ value }}</label><br>
+    {% endfor %}
+
+    <input class="a" type="submit" value="确认" formaction="main/permissionDecide">
+
+</form>
+<hr>
+<form id="addForm" action="main/update">
+    <p class="tishi">修改或添加信息</p>
+    <input type="text" id="otherKey" name="otherKey" placeholder="名称">:<input type="text" id="otherValue"
+                                                                              name="otherValue" placeholder="内容">
+    <input type="submit" value="添加">
+</form>
+</body>
+</html>

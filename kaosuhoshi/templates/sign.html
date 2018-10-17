@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="static/css/sign.css" type="text/css"/>
+</head>
+<body>
+
+<img src="static/img/KH.png"/>
+<div style="text-align: right; font-family: 'Times New Roman',serif; font-size: x-large">
+    PersonalInformation
+</div>
+
+<hr>
+<form id="sign">
+    <label>用户名：&emsp;<input type="text" id="signAccess" name="signAccess" placeholder="包含大小写字母及数字"></label><br>
+    <label>密码：&emsp;&emsp;<input type="password" id="signSecret" name="signSecret" placeholder="包含大小写字母及数字"></label><br>
+    <label>确认密码：<input type="password" id="signSecret2" name="signSecret2" placeholder="大于八位"></label><br>
+    <p style="font-size: small;color: #9f9f9f;">基本信息</p>
+    <label>用户类型：<input type="text" id="signEntity_type" placeholder="Person/Organization" name="signEntity_type"></label><br>
+    <label>姓名：&emsp;&emsp;<input type="text" id="signName" name="signName"></label><br>
+    <label>国家：&emsp;&emsp;<input type="text" id="signCountry" name="signCountry"></label><br>
+    <label><input type="submit" id="submitSign" value="注册" formaction="sign/signCheck"></label><br>
+</form>
+</body>
+</html>

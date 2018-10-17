@@ -1,0 +1,25 @@
+#play{
+    margin: auto;
+    text-align: center;
+}
+#accessOn{
+    position: absolute;
+    top:0;
+    right: 0;
+}
+#find{
+    position: absolute;
+    right: 0;
+}
+#headPhoto{
+    text-align: right;
+    font-family: "Times New Roman", serif;
+    font-size: x-large;
+}
+#addForm{
+    text-align: center;
+}
+.tishi{
+    font-size: x-small;
+    color: rgba(0, 0, 0, 0.38);
+}
